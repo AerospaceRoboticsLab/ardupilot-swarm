@@ -152,6 +152,9 @@ Mode *Copter::mode_from_mode_num(const Mode::Number mode)
             return &mode_turtle;
 #endif
 
+        case Mode::Number::TETHER:
+            return &mode_tether;
+
         default:
             break;
     }

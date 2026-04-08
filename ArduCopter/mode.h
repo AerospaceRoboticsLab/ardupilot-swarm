@@ -103,6 +103,7 @@ public:
         TURTLE =       28,  // Flip over after crash
 
         // Mode number 30 reserved for "offboard" for external/lua control.
+        TETHER =       31,  // Direct tether mode control from companion computer
 
         // Mode number 127 reserved for the "drone show mode" in the Skybrush
         // fork at https://github.com/skybrush-io/ardupilot
@@ -2152,3 +2153,29 @@ private:
 
 };
 #endif
+
+class ModeTether : public Mode {
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+    Number mode_number() const override { return Number::TETHER; }
+
+    bool init(bool ignore_checks) override;
+    void run() override;
+    void exit() override;
+
+    bool is_autopilot() const override { return true; }
+    bool requires_position() const override { return true; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(AP_Arming::Method method) const override { return false; } // only arm in loiter/stabilize
+
+protected:
+
+    const char *name() const override { return "TETHER"; }
+    const char *name4() const override { return "TETH"; }
+
+private:
+    const uint32_t TETHER_DATA_TIMEOUT_MS = 500;
+
+};

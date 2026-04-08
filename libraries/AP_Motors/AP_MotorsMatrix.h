@@ -105,6 +105,10 @@ public:
     float get_thrust_rpyt_out(uint8_t i) const;
     bool get_factors(uint8_t i, float &roll, float &pitch, float &yaw, float &throttle, uint8_t &testing_order) const;
 
+    // tether mode direct overrides
+    void                set_tether_override(bool active) { _tether_override_active = active; }
+    void                set_motor_thrust_override(uint8_t motor_num, float thrust) { _tether_thrust_override[motor_num] = thrust; }
+
 protected:
     // output - sends commands to the motors
     void                output_armed_stabilizing() override;
@@ -154,6 +158,9 @@ protected:
 
     const char*         _frame_class_string = ""; // string representation of frame class
     const char*         _frame_type_string = "";  //  string representation of frame type
+
+    bool                _tether_override_active = false;
+    float               _tether_thrust_override[AP_MOTORS_MAX_NUM_MOTORS]; // manual motor thrust overrides
 
 private:
 
