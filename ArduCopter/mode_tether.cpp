@@ -59,23 +59,46 @@ void ModeTether::run()
     float q3 = copter.tether_control_cmd.q[2];
     float q4 = copter.tether_control_cmd.q[3];
 
-    // TODO: Define experimentally-determined mapping
-    // Calculate mapping to 4 motors here based on quadcopter config
-    // ... math ...
+    // --- 1. Experimental Constants ---
+    // User: define your motor constants here
+    // e.g. Thrust = cT * RPM^2, Torque = cQ * RPM^2, RPM = k * Throttle + b
+    // const float param_cT = 0.0001f; 
+    // const float param_cQ = 0.00002f;
+
+    // --- 2. Desired Wrench (Forces and Torques) ---
+    // You have the incoming force vector (fx, fy, fz) and target attitude quaternion (q1...q4).
+    // Convert the target attitude error into desired torques (tau_x, tau_y, tau_z)
+    // Combine this with the tether force request to get the total desired body frame Thrust and Torques.
     
-    // Default mapping sample mapping (replace with custom matrix math)
-    float base_throttle = 0.3f; // hover roughly
-    float thrust_m1 = base_throttle;
-    float thrust_m2 = base_throttle;
-    float thrust_m3 = base_throttle;
-    float thrust_m4 = base_throttle;
+    float desired_thrust = 0.0f; // Compute from your tracking controller
+    float desired_tau_x = 0.0f;  // Roll torque
+    float desired_tau_y = 0.0f;  // Pitch torque
+    float desired_tau_z = 0.0f;  // Yaw torque
+
+    // --- 3. Mixing Matrix ---
+    // Map Thrust (T) and Torques (tau) to individual motor thrusts (T1, T2, T3, T4)
+    // Example for a standard 'X' quadcopter structure:
+    // T1 = (desired_thrust / 4.0f) - (desired_tau_x / L) + (desired_tau_y / L) + (desired_tau_z / cQ)
+    float T_motors[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    
+    // --- 4. Thrust to Throttle Inversion ---
+    // Invert the Thrust model to find target RPM, then map RPM to PWM/Throttle percentage (0.0 to 1.0)
+    float throttle_m[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    for (uint8_t i = 0; i < 4; i++) {
+        // Example inversion: 
+        // float desired_rpm = sqrtf(T_motors[i] / param_cT);
+        // throttle_m[i] = (desired_rpm - param_RPM_min) / (param_RPM_max - param_RPM_min);
+        
+        // Ensure constraints are respected
+        throttle_m[i] = constrain_float(throttle_m[i], 0.0f, 1.0f);
+    }
 
     // Apply exact overrides (0.0 to 1.0) for each quadcopter motor
     if (copter.motors != nullptr) {
-        copter.motors->set_motor_thrust_override(0, thrust_m1);
-        copter.motors->set_motor_thrust_override(1, thrust_m2);
-        copter.motors->set_motor_thrust_override(2, thrust_m3);
-        copter.motors->set_motor_thrust_override(3, thrust_m4);
+        copter.motors->set_motor_thrust_override(0, throttle_m[0]);
+        copter.motors->set_motor_thrust_override(1, throttle_m[1]);
+        copter.motors->set_motor_thrust_override(2, throttle_m[2]);
+        copter.motors->set_motor_thrust_override(3, throttle_m[3]);
     }
 
     // Keep ground handling safe and clear windup in regular attitude controller
