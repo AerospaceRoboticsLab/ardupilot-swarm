@@ -351,6 +351,32 @@ void GCS_MAVLINK_Copter::packetReceived(const mavlink_status_t &status,
         copter.avoidance_adsb.handle_msg(msg);
     }
 #endif
+
+#ifdef MAVLINK_MSG_ID_TETHER_CONTROL
+    if (msg.msgid == MAVLINK_MSG_ID_TETHER_CONTROL) {
+        mavlink_tether_control_t packet;
+        mavlink_msg_tether_control_decode(&msg, &packet);
+
+        copter.tether_control_cmd.x = packet.x;
+        copter.tether_control_cmd.y = packet.y;
+        copter.tether_control_cmd.z = packet.z;
+
+        // Assuming packet has an array q[4] or individual q1, q2, q3, q4.
+        // We'll map them explicitly assuming q1...q4 format for robustness, 
+        // or q[4] if the user defined an array. We access them as defined.
+        copter.tether_control_cmd.q[0] = packet.q1;
+        copter.tether_control_cmd.q[1] = packet.q2;
+        copter.tether_control_cmd.q[2] = packet.q3;
+        copter.tether_control_cmd.q[3] = packet.q4;
+
+        copter.tether_control_cmd.fx = packet.fx;
+        copter.tether_control_cmd.fy = packet.fy;
+        copter.tether_control_cmd.fz = packet.fz;
+
+        copter.tether_last_rcv_ms = AP_HAL::millis();
+    }
+#endif
+
     GCS_MAVLINK::packetReceived(status, msg);
 }
 

@@ -431,6 +431,14 @@ private:
     MOTOR_CLASS *motors;
     const struct AP_Param::GroupInfo *motors_var_info;
 
+    // Tether control data
+    struct {
+        float x, y, z;
+        float q[4];
+        float fx, fy, fz;
+    } tether_control_cmd;
+    uint32_t tether_last_rcv_ms;
+
     float _home_bearing_rad;
     float _home_distance_m;
 
@@ -1098,6 +1106,7 @@ private:
 #if MODE_ZIGZAG_ENABLED
     ModeZigZag mode_zigzag;
 #endif
+    ModeTether mode_tether;
 #if MODE_AUTOROTATE_ENABLED
     ModeAutorotate mode_autorotate;
 #endif
