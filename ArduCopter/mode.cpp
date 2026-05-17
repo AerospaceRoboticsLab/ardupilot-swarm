@@ -1,5 +1,9 @@
 #include "Copter.h"
 
+#ifndef MODE_TETHER_ENABLED
+#define MODE_TETHER_ENABLED 1
+#endif
+
 /*
  * High level calls to set and update flight modes logic for individual
  * flight modes is in control_acro.cpp, control_stabilize.cpp, etc
