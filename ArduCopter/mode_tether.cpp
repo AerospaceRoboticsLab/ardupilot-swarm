@@ -43,7 +43,7 @@ void ModeTether::run()
     // not implement payload dynamics, force allocation, or MAVLink input.
     motors->set_tether_override(true);
     for (uint8_t i = 0; i < 4; i++) {
-        motors->set_motor_thrust_override(i, 0.40f);
+        motors->set_motor_thrust_override(i, 0.10f);
     }
 }
 
