@@ -120,6 +120,25 @@ void Battery::setup(float _capacity_Ah, float _resistance, float _max_voltage)
     capacity_Ah = _capacity_Ah;
     resistance = _resistance;
     max_voltage = _max_voltage;
+
+    voltage_set = max_voltage;
+    voltage_filter.reset(voltage_set);
+    set_initial_SoC(voltage_set);
+}
+
+void Battery::maybe_reset(float desired_voltage, float desired_capacity_Ah)
+{
+    const bool reset_not_needed = (is_equal(voltage_set, desired_voltage)
+                                   && is_equal(capacity_Ah, desired_capacity_Ah));
+    if (reset_not_needed) {
+        return;
+    }
+
+    capacity_Ah = desired_capacity_Ah;
+    // a negative desired voltage is unexpected, but not problematic
+    voltage_set = MIN(desired_voltage, max_voltage);
+    voltage_filter.reset(voltage_set);
+    set_initial_SoC(voltage_set);
 }
 
 void Battery::init_voltage(float voltage)
@@ -134,12 +153,6 @@ void Battery::init_capacity(float capacity)
 {
     capacity_Ah = capacity;
     set_initial_SoC(voltage_set);
-}
-
-void Battery::set_current(float current)
-{
-    const uint64_t now_us = AP_HAL::micros64();
-    set_current(current, now_us);
 }
 
 void Battery::set_current(float current, uint64_t now_us)
@@ -168,10 +181,14 @@ void Battery::set_current(float current, uint64_t now_us)
     {
         const uint64_t temperature_dt = now_us - temperature.last_update_us;
         temperature.last_update_us = now_us;
-        // 1 amp*1 second == 0.1 degrees of energy.  Did those units hurt?
-        temperature.kelvin += 0.1 * current * temperature_dt * 0.000001;
+        // thermal_capacity value chosen to match previous steady-state behavior at 28amps
+        // (reminder: thermal_capacity = mass * specific_heat)
+        constexpr float thermal_capacity = 2.8f;  // watt*seconds/degC
+        constexpr float inverse_of_thermal_capacity = 1 / thermal_capacity;  // use inverse so we can multiply, not divide
+        const float temp_increase = (current * current) * resistance * inverse_of_thermal_capacity * (temperature_dt * 0.000001);
         // decay temperature at some %second towards ambient
-        temperature.kelvin -= (temperature.kelvin - 273) * 0.10 * temperature_dt * 0.000001;
+        const float temp_decrease = (temperature.kelvin - 273.15f) * 0.10 * temperature_dt * 0.000001;
+        temperature.kelvin += (temp_increase - temp_decrease);
     }
 }
 
