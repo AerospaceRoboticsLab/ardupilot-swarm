@@ -2154,6 +2154,7 @@ private:
 };
 #endif
 
+#if MODE_TETHER_ENABLED
 class ModeTether : public Mode {
 
 public:
@@ -2179,3 +2180,4 @@ private:
     const uint32_t TETHER_DATA_TIMEOUT_MS = 500;
 
 };
+#endif  // MODE_TETHER_ENABLED

@@ -97,6 +97,10 @@ public:
 
     bool                get_raw_motor_throttle(uint8_t motor_num, float& thr_out) const override;
 
+    virtual void        set_tether_override(bool) {}
+    virtual void        clear_tether_override() {}
+    virtual void        set_motor_thrust_override(uint8_t, float) {}
+
 #if HAL_LOGGING_ENABLED
     // 10hz logging of voltage scaling and max trust
     void                Log_Write() override;

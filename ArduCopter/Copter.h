@@ -1105,7 +1105,9 @@ private:
 #if MODE_ZIGZAG_ENABLED
     ModeZigZag mode_zigzag;
 #endif
+#if MODE_TETHER_ENABLED
     ModeTether mode_tether;
+#endif
 #if MODE_AUTOROTATE_ENABLED
     ModeAutorotate mode_autorotate;
 #endif

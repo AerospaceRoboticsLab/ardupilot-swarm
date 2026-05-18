@@ -239,10 +239,10 @@
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////////////
-// TEST
+//////////////////////////////////////////////////////////////////////////////
+// Tether mode - SITL-only direct motor control for tethered payload experiments
 #ifndef MODE_TETHER_ENABLED
-# define MODE_TETHER_ENABLED 1
+# define MODE_TETHER_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL && FRAME_CONFIG != HELI_FRAME)
 #endif
 
 
