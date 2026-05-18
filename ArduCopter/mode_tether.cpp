@@ -3,6 +3,11 @@
 // init - initialise TETHER mode
 bool ModeTether::init(bool ignore_checks)
 {
+    
+    //// Temporary
+
+    /*
+
     // abort if no position available
     if (!ignore_checks && !copter.ap.initialised) {
         return false;
@@ -18,19 +23,28 @@ bool ModeTether::init(bool ignore_checks)
         copter.motors->set_tether_override(true);
     }
 
+    */
+
     return true;
 }
 
 void ModeTether::exit()
 {
+    /*
+    
     if (copter.motors != nullptr) {
         copter.motors->set_tether_override(false);
     }
+
+    */
 }
 
 // run - main loop for TETHER mode
 void ModeTether::run()
 {
+
+    /*
+
     // Check for tether data timeout
     if (AP_HAL::millis() - copter.tether_last_rcv_ms > TETHER_DATA_TIMEOUT_MS) {
         // Fallback to Land mode if tether data heartbeat is lost
@@ -103,4 +117,6 @@ void ModeTether::run()
 
     // Keep ground handling safe and clear windup in regular attitude controller
     zero_throttle_and_relax_ac(true);
+
+    */
 }

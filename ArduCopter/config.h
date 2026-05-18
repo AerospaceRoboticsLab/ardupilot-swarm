@@ -238,6 +238,17 @@
 # define MODE_TURTLE_ENABLED HAL_DSHOT_ENABLED && FRAME_CONFIG != HELI_FRAME
 #endif
 
+
+///////////////////////////////////////////////////////////////////////////////////////
+// TEST
+#ifndef MODE_TETHER_ENABLED
+# define MODE_TETHER_ENABLED 1
+#endif
+
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 // Flowhold - use optical flow to hover in place
 #ifndef MODE_FLOWHOLD_ENABLED
