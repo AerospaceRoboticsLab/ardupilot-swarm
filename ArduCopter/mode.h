@@ -68,6 +68,8 @@ private:
 };
 #endif
 
+class ModeGuided;
+
 class Mode {
     friend class PayloadPlace;
 
@@ -132,6 +134,7 @@ public:
     virtual bool is_autopilot() const = 0;
     virtual bool has_user_takeoff(bool must_navigate) const { return false; }
     virtual bool in_guided_mode() const { return false; }
+    virtual ModeGuided *as_guided_mode() { return nullptr; }
     virtual bool logs_attitude() const { return false; }
     virtual bool allows_save_trim() const { return false; }
     virtual bool allows_auto_trim() const { return false; }
@@ -1109,6 +1112,7 @@ public:
     bool is_autopilot() const override { return true; }
     bool has_user_takeoff(bool must_navigate) const override { return true; }
     bool in_guided_mode() const override { return true; }
+    ModeGuided *as_guided_mode() override { return this; }
     bool move_vehicle_on_ekf_reset() const override;
 
     bool requires_terrain_failsafe() const override { return true; }
@@ -2155,29 +2159,17 @@ private:
 #endif
 
 #if MODE_TETHER_ENABLED
-class ModeTether : public Mode {
+class ModeTether : public ModeGuided {
 
 public:
     // inherit constructor
-    using Mode::Mode;
+    using ModeGuided::ModeGuided;
     Number mode_number() const override { return Number::TETHER; }
-
-    bool init(bool ignore_checks) override;
-    void run() override;
-    void exit() override;
-
-    bool is_autopilot() const override { return true; }
-    bool requires_position() const override { return true; }
-    bool has_manual_throttle() const override { return false; }
-    bool allows_arming(AP_Arming::Method method) const override { return false; } // only arm in loiter/stabilize
 
 protected:
 
     const char *name() const override { return "TETHER"; }
     const char *name4() const override { return "TETH"; }
-
-private:
-    const uint32_t TETHER_DATA_TIMEOUT_MS = 500;
 
 };
 #endif  // MODE_TETHER_ENABLED
