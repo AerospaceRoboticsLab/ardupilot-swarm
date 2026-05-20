@@ -924,8 +924,8 @@ void GCS_MAVLINK_Copter::handle_message_set_attitude_target(const mavlink_messag
     mavlink_set_attitude_target_t packet;
     mavlink_msg_set_attitude_target_decode(&msg, &packet);
 
-    // exit if vehicle is not in Guided mode or Auto-Guided mode
-    if (!copter.flightmode->in_guided_mode()) {
+    ModeGuided *guided_mode = copter.flightmode->as_guided_mode();
+    if (guided_mode == nullptr) {
         return;
     }
 
@@ -938,7 +938,7 @@ void GCS_MAVLINK_Copter::handle_message_set_attitude_target(const mavlink_messag
     // ensure thrust field is not ignored
     if (throttle_ignore) {
         // The throttle input is not defined
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
         return;
     }
 
@@ -953,7 +953,7 @@ void GCS_MAVLINK_Copter::handle_message_set_attitude_target(const mavlink_messag
         // this limit is somewhat greater than sqrt(FLT_EPSL)
         if (!attitude_quat.is_unit_length()) {
             // The attitude quaternion is ill-defined
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
     }
@@ -965,12 +965,12 @@ void GCS_MAVLINK_Copter::handle_message_set_attitude_target(const mavlink_messag
         ang_vel_body.z = packet.body_yaw_rate;
     } else if (!(roll_rate_ignore && pitch_rate_ignore && yaw_rate_ignore)) {
         // The body rates are ill-defined
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
         return;
     }
 
     // check if the message's thrust field should be interpreted as a climb rate or as thrust
-    const bool use_thrust = copter.mode_guided.set_attitude_target_provides_thrust();
+    const bool use_thrust = guided_mode->set_attitude_target_provides_thrust();
 
     float climb_rate_ms_or_thrust;
     if (use_thrust) {
@@ -990,8 +990,8 @@ void GCS_MAVLINK_Copter::handle_message_set_attitude_target(const mavlink_messag
         }
     }
 
-    copter.mode_guided.set_angle(attitude_quat, ang_vel_body,
-            climb_rate_ms_or_thrust, use_thrust);
+    guided_mode->set_angle(attitude_quat, ang_vel_body,
+                           climb_rate_ms_or_thrust, use_thrust);
 }
 
 void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavlink_message_t &msg)
@@ -1000,8 +1000,8 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavl
     mavlink_set_position_target_local_ned_t packet;
     mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
 
-    // exit if vehicle is not in Guided mode or Auto-Guided mode
-    if (!copter.flightmode->in_guided_mode()) {
+    ModeGuided *guided_mode = copter.flightmode->as_guided_mode();
+    if (guided_mode == nullptr) {
         return;
     }
 
@@ -1011,7 +1011,7 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavl
         packet.coordinate_frame != MAV_FRAME_BODY_NED &&
         packet.coordinate_frame != MAV_FRAME_BODY_OFFSET_NED) {
         // unsupported coordinate frame
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
         return;
     }
 
@@ -1025,7 +1025,7 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavl
     // Force inputs are not supported
     // Do not accept command if force_set is true and acc_ignore is false
     if (force_set && !acc_ignore) {
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
         return;
     }
 
@@ -1046,7 +1046,7 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavl
             Vector3p rel_pos_ned_m;
             if (!AP::ahrs().get_relative_position_NED_origin(rel_pos_ned_m)) {
                 // need position estimate to calculate target position
-                copter.mode_guided.hold_position();
+                guided_mode->hold_position();
                 return;
             }
             pos_ned_m += rel_pos_ned_m;
@@ -1059,7 +1059,7 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavl
         vel_ned_ms = Vector3f{packet.vx, packet.vy, packet.vz};
         if (!sane_vel_or_acc_vector(vel_ned_ms)) {
             // velocity vector contains NaN or Inf
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
         // rotate to earth-frame if necessary
@@ -1092,16 +1092,18 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_local_ned(const mavl
 
     // send request
     if (!pos_ignore && !vel_ignore) {
-        copter.mode_guided.set_pos_vel_accel_NED_m(pos_ned_m, vel_ned_ms, accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative);
+        guided_mode->set_pos_vel_accel_NED_m(pos_ned_m, vel_ned_ms, accel_ned_mss,
+                                             !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative);
     } else if (pos_ignore && !vel_ignore) {
-        copter.mode_guided.set_vel_accel_NED_m(vel_ned_ms, accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative);
+        guided_mode->set_vel_accel_NED_m(vel_ned_ms, accel_ned_mss,
+                                         !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative);
     } else if (pos_ignore && vel_ignore && !acc_ignore) {
-        copter.mode_guided.set_accel_NED_mss(accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative);
+        guided_mode->set_accel_NED_mss(accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative);
     } else if (!pos_ignore && vel_ignore && acc_ignore) {
-        copter.mode_guided.set_pos_NED_m(pos_ned_m, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative, false);
+        guided_mode->set_pos_NED_m(pos_ned_m, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads, yaw_relative, false);
     } else {
         // unsupported combination of position/velocity/acceleration flags
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
     }
 }
 
@@ -1111,8 +1113,8 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
     mavlink_set_position_target_global_int_t packet;
     mavlink_msg_set_position_target_global_int_decode(&msg, &packet);
 
-    // exit if vehicle is not in Guided mode or Auto-Guided mode
-    if (!copter.flightmode->in_guided_mode()) {
+    ModeGuided *guided_mode = copter.flightmode->as_guided_mode();
+    if (guided_mode == nullptr) {
         return;
     }
 
@@ -1128,7 +1130,7 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
     // Force inputs are not supported
     // Do not accept command if force_set is true and acc_ignore is false
     if (force_set && !acc_ignore) {
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
         return;
     }
 
@@ -1138,13 +1140,13 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
         // sanity check location
         if (!check_latlng(packet.lat_int, packet.lon_int)) {
             // invalid latitude or longitude
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
         Location::AltFrame frame;
         if (!mavlink_coordinate_frame_to_location_alt_frame((MAV_FRAME)packet.coordinate_frame, frame)) {
             // unknown coordinate frame
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
         loc = {packet.lat_int, packet.lon_int, int32_t(packet.alt*100), frame};
@@ -1156,7 +1158,7 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
         vel_ned_ms = Vector3f{packet.vx, packet.vy, packet.vz};
         if (!sane_vel_or_acc_vector(vel_ned_ms)) {
             // velocity vector contains NaN or Inf
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
     }
@@ -1182,25 +1184,25 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
         // convert Location to vector from ekf origin for posvel controller
         if (loc.get_alt_frame() == Location::AltFrame::ABOVE_TERRAIN) {
             // posvel controller does not support alt-above-terrain
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
         Vector3p pos_ned_m;
         if (!loc.get_vector_from_origin_NED_m(pos_ned_m)) {
             // could not convert location to NED position
-            copter.mode_guided.hold_position();
+            guided_mode->hold_position();
             return;
         }
-        copter.mode_guided.set_pos_vel_NED_m(pos_ned_m, vel_ned_ms, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
+        guided_mode->set_pos_vel_NED_m(pos_ned_m, vel_ned_ms, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
     } else if (pos_ignore && !vel_ignore) {
-        copter.mode_guided.set_vel_accel_NED_m(vel_ned_ms, accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
+        guided_mode->set_vel_accel_NED_m(vel_ned_ms, accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
     } else if (pos_ignore && vel_ignore && !acc_ignore) {
-        copter.mode_guided.set_accel_NED_mss(accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
+        guided_mode->set_accel_NED_mss(accel_ned_mss, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
     } else if (!pos_ignore && vel_ignore && acc_ignore) {
-        copter.mode_guided.set_destination(loc, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
+        guided_mode->set_destination(loc, !yaw_ignore, yaw_rad, !yaw_rate_ignore, yaw_rate_rads);
     } else {
         // unsupported combination of position/velocity/acceleration flags
-        copter.mode_guided.hold_position();
+        guided_mode->hold_position();
     }
 }
 #endif  // MODE_GUIDED_ENABLED

@@ -66,7 +66,7 @@ The PWM are in in five groups:
 - PWM 11-12 in group4
 - PWM 13 in group5
 
-.. note:: for users migrating from BetaflightX quads, the first four outputs M1-M4 have been configured for use with existing motor wiring using these default parameters:
+> **Note:** for users migrating from BetaflightX quads, the first four outputs M1-M4 have been configured for use with existing motor wiring using these default parameters:
 
 - :ref:`FRAME_CLASS<FRAME_CLASS>` = 1 (Quad)
 - :ref:`FRAME_TYPE<FRAME_TYPE>` = 12 (BetaFlightX)
@@ -77,11 +77,11 @@ to use DShot.
 
 ## Video Power Control
 
-The 12V video power can be turned off/on  using GPIO 81 which is already assigned by default to RELAY2.  This relay can be controlled either from the GCS or using a transmitter channel (See :ref:`common-auxiliary-functions`)
+The 12V video power can be turned off/on  using GPIO 81 which is already assigned by default to RELAY2.  This relay can be controlled either from the GCS or using a transmitter channel (See [auxiliary functions](https://ardupilot.org/copter/docs/common-auxiliary-functions.html))
 
 ## Camera Switch
 
-The camera output can be switched using GPIO 82 which is already assigned by default to RELAY3.  This relay can be controlled either from the GCS or using a transmitter channel (See :ref:`common-auxiliary-functions`)
+The camera output can be switched using GPIO 82 which is already assigned by default to RELAY3.  This relay can be controlled either from the GCS or using a transmitter channel (See [auxiliary functions](https://ardupilot.org/copter/docs/common-auxiliary-functions.html))
 
 ## RSSI
 

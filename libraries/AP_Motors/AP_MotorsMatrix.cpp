@@ -111,6 +111,27 @@ bool AP_MotorsMatrix::set_throttle_factor(int8_t motor_num, float throttle_facto
 
 #endif // AP_SCRIPTING_ENABLED
 
+void AP_MotorsMatrix::set_tether_override(bool active)
+{
+    _tether_override_active = active;
+}
+
+void AP_MotorsMatrix::clear_tether_override()
+{
+    _tether_override_active = false;
+    for (uint8_t i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        _tether_thrust_override[i] = 0.0f;
+    }
+}
+
+void AP_MotorsMatrix::set_motor_thrust_override(uint8_t motor_num, float thrust)
+{
+    if (motor_num >= AP_MOTORS_MAX_NUM_MOTORS) {
+        return;
+    }
+    _tether_thrust_override[motor_num] = constrain_float(thrust, 0.0f, 1.0f);
+}
+
 // set update rate to motors - a value in hertz
 void AP_MotorsMatrix::set_update_rate(uint16_t speed_hz)
 {
@@ -212,6 +233,17 @@ float AP_MotorsMatrix::boost_ratio(float boost_value, float normal_value) const
 // includes new scaling stability patch
 void AP_MotorsMatrix::output_armed_stabilizing()
 {
+
+    // SITL-only tether direct motor override.
+    // This intentionally bypasses normal RPYT mixing, but still leaves the
+    // lower motor output pipeline outside this function intact.
+    if (_tether_override_active) {
+        for (uint8_t i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            _thrust_rpyt_out[i] = motor_enabled[i] ? _tether_thrust_override[i] : 0.0f;
+        }
+        return;
+    }
+
     // apply voltage and air pressure compensation
     const float compensation_gain = thr_lin.get_compensation_gain(); // compensation for battery voltage and altitude
 
@@ -391,11 +423,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     const float throttle_thrust_best_plus_adj = throttle_thrust_best_rpy + thr_adj;
     for (uint8_t i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            if (_tether_override_active) {
-                _thrust_rpyt_out[i] = _tether_thrust_override[i];
-            } else {
-                _thrust_rpyt_out[i] = (throttle_thrust_best_plus_adj * _throttle_factor[i]) + (rpy_scale * _thrust_rpyt_out[i]);
-            }
+            _thrust_rpyt_out[i] = (throttle_thrust_best_plus_adj * _throttle_factor[i]) + (rpy_scale * _thrust_rpyt_out[i]);
         }
     }
 

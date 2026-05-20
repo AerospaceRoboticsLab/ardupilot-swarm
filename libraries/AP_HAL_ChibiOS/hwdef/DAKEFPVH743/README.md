@@ -51,7 +51,7 @@ receive pin for UARTn. The Tn pin is the transmit pin for UARTn.
 
 RC input is configured by default via the USART5 RX input. It supports all unidirectional serial RC protocols except PPM . The SBUS pin is inverted and tied to R5 for SBUS support.
 
-- FPort requires an external bi-directional inverter attached to T5 and :ref:`SERIAL5_OPTIONS<SERIAL5_OPTIONS>` set to 4 (half-duplex).  See :ref:`common-FPort-receivers`.
+- FPort requires an external bi-directional inverter attached to T5 and :ref:`SERIAL5_OPTIONS<SERIAL5_OPTIONS>` set to 4 (half-duplex).  See [FPort receivers](https://ardupilot.org/copter/docs/common-FPort-receivers.html).
 - CRSF/ELRS uses RX5/TX5.
 - SRXL2 requires a connection to T5 and automatically provides telemetry.  Set :ref:`SERIAL5_OPTIONS<SERIAL5_OPTIONS>` to "4".
 
@@ -118,7 +118,7 @@ The HD VTX connector can have RX4 replaced by the analog VTX signal if that conn
 
 ## Loading Firmware
 
-Firmware for these boards can be found `here <https://firmware.ardupilot.org>`__ in sub-folders labeled "DAKEFPVH743".
+Firmware for these boards can be found [here](https://firmware.ardupilot.org) in sub-folders labeled "DAKEFPVH743".
 Initial firmware load can be done with DFU by plugging in USB with the
 bootloader button pressed. Then you should load the "with_bl.hex"
 firmware, using your favourite DFU loading tool.

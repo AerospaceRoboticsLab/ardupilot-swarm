@@ -83,7 +83,7 @@ With this option:
 * CRSF also requires a TX1 connection, in addition to R6, and automatically provides telemetry. Set :ref:`SERIAL1_OPTIONS<SERIAL1_OPTIONS>` to “0”.
 * SRXL2 requires a connection to T1 and automatically provides telemetry. Set :ref:`SERIAL1_OPTIONS<SERIAL1_OPTIONS>` to “4”.
 
-Any UART can be used for RC system connections in ArduPilot also, and is compatible with all protocols except PPM. See :ref:`common-rc-systems` for more details.
+Any UART can be used for RC system connections in ArduPilot also, and is compatible with all protocols except PPM. See [RC systems](https://ardupilot.org/copter/docs/common-rc-systems.html) for more details.
 
 ## OSD Support
 
@@ -140,7 +140,7 @@ Analog RSSI input is via pin 12.  Set :ref:`RSSI_ANA_PIN<RSSI_ANA_PIN>` to "12" 
 
 ## Loading Firmware
 
-Firmware for the autopilot can be found `here <https://firmware.ardupilot.org>`__ in sub-folders labeled "BOTWINGF405".
+Firmware for the autopilot can be found [here](https://firmware.ardupilot.org) in sub-folders labeled "BOTWINGF405".
 
 Initial firmware load can be done with DFU by plugging in USB with the
 bootloader button pressed. Then you should load the "with_bl.hex"

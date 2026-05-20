@@ -56,7 +56,7 @@ this to a peripheral requiring 5v. The 9v supply is controlled by RELAY2_PIN set
 
 ## Camera Control
 
-The Cam pin is GPIO82 and is set to be controlled by RELAY4 by default. Relay pins can be controlled either by an RC switch or GCS command. See :ref:`common-relay` for more information.
+The Cam pin is GPIO82 and is set to be controlled by RELAY4 by default. Relay pins can be controlled either by an RC switch or GCS command. See [relay documentation](https://ardupilot.org/copter/docs/common-relay.html) for more information.
 
 ## PWM Output
 
@@ -76,7 +76,7 @@ Channels within the same group need to use the same output rate. If
 any channel in a group uses DShot then all channels in the group need
 to use DShot.
 
-.. note:: for users migrating from BetaflightX quads, the first four outputs M1-M4 have been configured for use with existing motor wiring using these default parameters:
+> **Note:** for users migrating from BetaflightX quads, the first four outputs M1-M4 have been configured for use with existing motor wiring using these default parameters:
 
 - :ref:`FRAME_CLASS<FRAME_CLASS>` = 1 (Quad)
 - :ref:`FRAME_TYPE<FRAME_TYPE>` = 12 (BetaFlightX)
@@ -101,7 +101,7 @@ SDMODEL SDH7 V2 has a built-in compass IST8310, but you can add an external comp
 
 ## Firmware
 
-Firmware for these boards can be found `here <https://firmware.ardupilot.org>`_ in  sub-folders labeled "SDMODELH7V2".
+Firmware for these boards can be found [here](https://firmware.ardupilot.org) in  sub-folders labeled "SDMODELH7V2".
 
 ## Loading Firmware
 
